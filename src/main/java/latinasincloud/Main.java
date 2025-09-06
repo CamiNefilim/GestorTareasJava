@@ -1,5 +1,6 @@
 package latinasincloud;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -8,7 +9,7 @@ import java.util.Scanner;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
 
-    private static List<String> tareas = new ArrayList<String>();
+    private static List<Tarea> tareas = new ArrayList<Tarea>();
     private static Scanner scanner = new Scanner(
             System.in
     );
@@ -51,27 +52,38 @@ public class Main {
     }
 
     private static void agregarTarea(){
-        System.out.print("> Ingrese su tarea: ");
-        String tarea = scanner.nextLine();
-        if(tarea.isEmpty()) {
+        System.out.print("> Ingrese nombre de su tarea: ");
+        String nombre = scanner.nextLine();
+        if(nombre.isEmpty()) {
             System.out.println("La tarea no puede ser vacía.");
             return;
         }
-        tareas.add(tarea);
+        System.out.print("> Ingrese prioridad de su tarea (ALTA/BAJA): ");
+        String prioridad = scanner.nextLine().toUpperCase();
+        if(prioridad.isEmpty() || (!prioridad.equals("ALTA") && !prioridad.equals("BAJA"))){
+            prioridad = "BAJA";
+        }
+        tareas.add(new Tarea(nombre,prioridad));
         System.out.println("La tarea ha sido agregada.");
     }
 
     private static void eliminarTarea(){
-        System.out.print("> Ingrese el índice de la tarea a eliminar: ");
-        int indice = scanner.nextInt();
+        System.out.print("> Ingrese el ID de la tarea a eliminar: ");
+        int id = scanner.nextInt();
         //Limpieza de buffer
         scanner.nextLine();
-        String tareaEncontrada = tareas.get(indice);
-        if(tareaEncontrada.isEmpty()){
-            System.out.println("No existe tarea en el índice ingresado.");
+        Tarea tareaEncontrada = null;
+        for(Tarea tareaTemporal : tareas){
+            if(tareaTemporal.getId() == id){
+                tareaEncontrada = tareaTemporal;
+                break;
+            }
+        }
+        if(tareaEncontrada == null){
+            System.out.println("No existe tarea con el ID ingresado.");
             return;
         }
-        tareas.remove(indice);
+        tareas.remove(tareaEncontrada);
         System.out.println("La tarea ha sido eliminada.");
     }
 
@@ -80,8 +92,18 @@ public class Main {
             System.out.println("No hay tareas registradas.");
         }
         else {
+            //Ordenar por prioridad
+            /* Comparator.comparing(...)
+               Es un método estático de la clase Comparator (desde Java 8).
+               Sirve para construir un comparador a partir de una función que devuelve un atributo de tu objeto.
+
+               Tarea::getPrioridad:
+               Es una method reference (referencia a método).
+               Significa “para cada objeto Tarea de la lista, llama a su método getPrioridad”.
+            */
+            tareas.sort(Comparator.comparing(Tarea::getPrioridad));
             for (int i = 0; i < tareas.size(); i++) {
-                System.out.printf("Índice: %d - Tarea: %s.\n", i, tareas.get(i));
+                System.out.printf("ID: %d - Tarea: %s - Prioridad: %s.\n", tareas.get(i).getId(), tareas.get(i).getNombre(), tareas.get(i).getPrioridad());
             }
         }
     }
@@ -90,10 +112,10 @@ public class Main {
         System.out.print("> Ingrese palabra clave para buscar: ");
         String palabraClave = scanner.nextLine();
         boolean encontreResultados = false;
-        for(String tarea : tareas){
-            if(tarea.toLowerCase().contains(palabraClave.toLowerCase())){
+        for(Tarea tarea : tareas){
+            if(tarea.getNombre().toLowerCase().contains(palabraClave.toLowerCase())){
                 encontreResultados = true;
-                System.out.printf("Índice: %d - Tarea: %s.\n", tareas.indexOf(tarea), tarea);
+                System.out.printf("ID: %d - Tarea: %s - Prioridad: %s.\n", tarea.getId(), tarea.getNombre(), tarea.getPrioridad());
             }
         }
         if(!encontreResultados){
